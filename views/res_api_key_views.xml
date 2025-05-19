@@ -11,6 +11,7 @@
                 <field name="is_admin"/>
                 <field name="active"/>
                 <field name="expiry_date"/>
+                <field name="allowed_model_ids" widget="many2many_tags" options="{'no_create': True}"/>
             </list>
         </field>
     </record>
@@ -34,6 +35,7 @@
                     <field name="is_admin"/>
                     <field name="active"/>
                     <field name="expiry_date"/>
+                    <field name="allowed_model_ids" widget="many2many_tags" options="{'no_create': True}"/>
                 </group>
             </form>
         </field>
