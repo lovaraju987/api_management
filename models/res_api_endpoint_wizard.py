@@ -9,11 +9,6 @@ class ResApiEndpointWizard(models.TransientModel):
         required=True, readonly=True,
         default=lambda self: self.env.context.get('active_id')
     )
-    # model_id = fields.Many2one(
-    #     'ir.model', string="Model",
-    #     required=True,
-    #     domain=lambda self: [('id', 'in', self.api_key_id.allowed_model_ids.ids)]
-    # )
     model_id = fields.Many2one(
         'ir.model', string="Model",
         required=True,
@@ -27,12 +22,21 @@ class ResApiEndpointWizard(models.TransientModel):
         'ir.model.fields', string="Fields",
         domain="[('model_id','=',model_id)]"
     )
+    allowed_model_ids_domain = fields.Many2many(
+        'ir.model', compute='_compute_allowed_model_ids_domain', string="Allowed Models (Domain Helper)"
+    )
+
+    @api.depends('api_key_id')
+    def _compute_allowed_model_ids_domain(self):
+        for rec in self:
+            rec.allowed_model_ids_domain = rec.api_key_id.allowed_model_ids.ids if rec.api_key_id else []
 
     @api.onchange('api_key_id')
     def _onchange_api_key_id(self):
-        if self.api_key_id:
+        if self.api_key_id and self.api_key_id.allowed_model_ids:
             allowed_ids = self.api_key_id.allowed_model_ids.ids
             return {'domain': {'model_id': [('id', 'in', allowed_ids)]}}
+        return {'domain': {'model_id': [('id', '=', False)]}}
 
     @api.onchange('model_id')
     def _onchange_model_id(self):

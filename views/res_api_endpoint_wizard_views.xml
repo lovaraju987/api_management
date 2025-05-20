@@ -8,7 +8,8 @@
       <form string="Create API Endpoint">
         <group>
           <field name="api_key_id" invisible="1"/>
-          <field name="model_id"/>
+          <field name="model_id"
+                 domain="[('id', 'in', allowed_model_ids_domain)]"/>
           <field name="url_path"/>
           <field name="field_ids" widget="many2many_tags"/>
         </group>
