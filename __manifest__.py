@@ -13,7 +13,9 @@
     "depends": ["base"],
     "data": [
         "security/ir.model.access.csv",
+        "views/res_api_endpoint_wizard_views.xml",
         "views/res_api_key_views.xml",
+        "views/res_api_endpoint_views.xml",
         "views/api_access_log_views.xml",
         "views/api_dashboard_views.xml",
         # "views/menu.xml",

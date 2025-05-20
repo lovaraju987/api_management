@@ -27,7 +27,13 @@
                             string="Regenerate Key"
                             class="btn-primary"
                             visibility="not key"/>
-                </header>
+          <!-- Show “Add Endpoint” only when at least one model is allowed -->
+                    <button name="%(action_open_api_endpoint_wizard)d"
+                            type="action"
+                            string="Add Endpoint"
+                            class="btn-secondary"
+                            invisible="not allowed_model_ids"/>
+                            </header>
                 <group>
                     <field name="name"/>
                     <field name="key" readonly="1"/>
