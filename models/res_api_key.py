@@ -20,6 +20,14 @@ class ResApiKey(models.Model):
         string='Allowed Models'
     )
 
+    endpoint_ids = fields.One2many(
+        comodel_name='res.api.endpoint',
+        inverse_name='id',  # Placeholder, see note below
+        string='API Endpoints',
+        compute='_compute_endpoint_ids',
+        store=False,
+    )
+
     def generate_key(self):
         for rec in self:
             rec.key = secrets.token_hex(20)
@@ -27,3 +35,7 @@ class ResApiKey(models.Model):
     def create(self, vals):
         vals['key'] = secrets.token_hex(20)
         return super().create(vals)
+
+    def _compute_endpoint_ids(self):
+        for rec in self:
+            rec.endpoint_ids = self.env['res.api.endpoint'].search([('api_key_ids', 'in', rec.id)])
