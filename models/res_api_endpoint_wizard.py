@@ -9,20 +9,30 @@ class ResApiEndpointWizard(models.TransientModel):
         required=True, readonly=True,
         default=lambda self: self.env.context.get('active_id')
     )
+    # model_id = fields.Many2one(
+    #     'ir.model', string="Model",
+    #     required=True,
+    #     domain=lambda self: [('id', 'in', self.api_key_id.allowed_model_ids.ids)]
+    # )
     model_id = fields.Many2one(
         'ir.model', string="Model",
         required=True,
-        domain=lambda self: [('id', 'in', self.api_key_id.allowed_model_ids.ids)]
     )
     url_path = fields.Char(
         string="URL Path",
         required=True,
-        help="Exposed at /api/<url_path>"
+        help="Will be exposed at /api/<url_path>"
     )
     field_ids = fields.Many2many(
         'ir.model.fields', string="Fields",
         domain="[('model_id','=',model_id)]"
     )
+
+    @api.onchange('api_key_id')
+    def _onchange_api_key_id(self):
+        if self.api_key_id:
+            allowed_ids = self.api_key_id.allowed_model_ids.ids
+            return {'domain': {'model_id': [('id', 'in', allowed_ids)]}}
 
     @api.onchange('model_id')
     def _onchange_model_id(self):
