@@ -41,7 +41,24 @@ class ResApiEndpointWizard(models.TransientModel):
     @api.onchange('model_id')
     def _onchange_model_id(self):
         if self.model_id:
-            self.url_path = self.model_id.model.replace('.', '_')
+            # Only allow fields of these types
+            allowed_types = [
+                'char', 'text', 'selection', 'integer', 'float', 'boolean',
+                'date', 'datetime', 'monetary', 'many2one', 'one2many', 'many2many', 'binary'
+            ]
+            return {
+                'domain': {
+                    'field_ids': [
+                        ('model_id', '=', self.model_id.id),
+                        ('ttype', 'in', allowed_types),
+                        ('store', '=', True),  # Only stored fields
+                        ('compute', '=', False),  # Exclude computed fields if you want
+                        ('related', '=', False),  # Exclude related fields if you want
+                    ]
+                }
+            }
+        else:
+            return {'domain': {'field_ids': []}}
 
     def action_create_endpoint(self):
         self.ensure_one()

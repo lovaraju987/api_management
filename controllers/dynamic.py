@@ -3,6 +3,32 @@ from odoo import http, fields
 from odoo.http import request
 import json
 
+def serialize_field(record, field_name, field):
+    value = record[field_name]
+    if field.type in ('char', 'text', 'selection', 'integer', 'float', 'boolean', 'date', 'datetime', 'monetary'):
+        return value
+    elif field.type == 'many2one':
+        if value:
+            try:
+                name = value.name_get()[0][1] if hasattr(value, 'name_get') and value.name_get() else str(value.id)
+            except Exception:
+                name = str(value.id)
+            return {'id': value.id, 'name': name}
+        return None
+    elif field.type in ('one2many', 'many2many'):
+        result = []
+        for r in value:
+            try:
+                name = r.name_get()[0][1] if hasattr(r, 'name_get') and r.name_get() else str(r.id)
+            except Exception:
+                name = str(r.id)
+            result.append({'id': r.id, 'name': name})
+        return result
+    elif field.type == 'binary':
+        return bool(value)  # Or encode as base64 if needed
+    else:
+        return str(value)  # Fallback for unknown types
+
 class DynamicAPI(http.Controller):
 
     @http.route('/api/<string:endpoint_path>', auth='none', type='http', methods=['GET'], csrf=False)
@@ -35,11 +61,18 @@ class DynamicAPI(http.Controller):
         # 3) fetch data
         model_name     = endpoint.model_id.model
         allowed_fields = endpoint.field_ids.mapped('name')
-        records        = request.env[model_name].sudo().search([], limit=100)
-        data = [
-            { fld: rec[fld] for fld in allowed_fields }
-            for rec in records
-        ]
+        model_obj      = request.env[model_name]
+        records        = model_obj.sudo().search([], limit=100)
+        model_fields   = model_obj._fields
+
+        data = []
+        for rec in records:
+            rec_data = {}
+            for fld in allowed_fields:
+                field = model_fields.get(fld)
+                if field:
+                    rec_data[fld] = serialize_field(rec, fld, field)
+            data.append(rec_data)
 
         # 4) log usage
         request.env['api.access.log'].sudo().create({
