@@ -28,6 +28,9 @@ class ResApiKey(models.Model):
         store=False,
     )
 
+    # New field: select allowed companies for this API key.
+    company_ids = fields.Many2many('res.company', string="Allowed Companies")
+
     def generate_key(self):
         for rec in self:
             rec.key = secrets.token_hex(20)

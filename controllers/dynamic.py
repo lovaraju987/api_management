@@ -87,7 +87,16 @@ class DynamicAPI(http.Controller):
         model_name     = endpoint.model_id.model
         allowed_fields = endpoint.field_ids.mapped('name')
         model_obj      = request.env[model_name]
-        records        = model_obj.sudo().search([], limit=100)
+
+        # Use allowed companies from the API key; fallback to the current user's companies.
+        allowed_companies = api_key.company_ids.ids or request.env.user.company_ids.ids
+        if not allowed_companies:
+            allowed_companies = request.env['res.company'].sudo().search([]).ids
+
+        if allowed_companies and len(allowed_companies) > 0:
+            records = model_obj.sudo().with_context(allowed_company_ids=allowed_companies).search([], limit=100)
+        else:
+            records = model_obj.sudo().search([], limit=100)
         model_fields   = model_obj._fields
 
         data = []
@@ -105,11 +114,9 @@ class DynamicAPI(http.Controller):
 
         # 4) Log usage
         try:
-            # If the current transaction is aborted, rollback before logging usage.
             if request.env.cr.status == "in_failed_transaction":
                 request.env.cr.rollback()
         except Exception:
-            # Fallback if status attribute is not available.
             request.env.cr.rollback()
 
         request.env['api.access.log'].sudo().create({
@@ -132,7 +139,7 @@ class DynamicAPI(http.Controller):
             'endpoint':    endpoint_path,
             'status':      'unauthorized',
             'ip_address':  ip_address,
-            'query_string':query_string,
+            'query_string': query_string,
         })
         return request.make_response(
             json.dumps({'error': 'Unauthorized'}),
