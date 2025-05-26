@@ -28,13 +28,17 @@ class ApiEndpoint(models.Model):
         domain="[('model_id','=',model_id)]",
         help="Which fields of the model will be returned"
     )
-    api_key_ids = fields.Many2many(
-        'res.api.key',
-        string="Allowed API Keys",
-        help="Only these API keys can call this endpoint"
-    )
     active = fields.Boolean(
         string="Active",
         default=True,
         help="Uncheck to disable this endpoint"
+    )
+
+    api_key_ids = fields.Many2many(
+        'res.api.key',
+        'res_api_key_res_api_endpoint_rel',
+        'endpoint_id',
+        'api_key_id',
+        string='Allowed API Keys'
+        help="Only these API keys can call this endpoint"
     )

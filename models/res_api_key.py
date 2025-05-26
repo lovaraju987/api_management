@@ -20,12 +20,12 @@ class ResApiKey(models.Model):
         string='Allowed Models'
     )
     # Your endpoint_ids field remains defined as before.
-    endpoint_ids = fields.One2many(
-        comodel_name='res.api.endpoint',
-        inverse_name='id',  # Placeholder (if you are using a computed field, adjust accordingly)
-        string='API Endpoints',
-        compute='_compute_endpoint_ids',
-        store=False,
+    endpoint_ids = fields.Many2many(
+        'res.api.endpoint',
+        'res_api_key_res_api_endpoint_rel',
+        'api_key_id',
+        'endpoint_id',
+        string='API Endpoints'
     )
     company_ids = fields.Many2many('res.company', string="Allowed Companies")
 

@@ -47,8 +47,8 @@
                 </sheet>
                 <notebook>
                     <page string="API Endpoints">
-                        <field name="endpoint_ids" readonly="1">
-                            <list>
+                        <field name="endpoint_ids">
+                            <list editable="bottom" delete="true">
                                 <field name="name"/>
                                 <field name="url_path"/>
                                 <field name="model_id"/>
@@ -56,11 +56,13 @@
                                 <field name="active"/>
                             </list>
                             <form>
-                                <field name="name"/>
-                                <field name="url_path"/>
-                                <field name="model_id"/>
-                                <field name="field_ids" widget="many2many_tags"/>
-                                <field name="active"/>
+                                <group>
+                                    <field name="name"/>
+                                    <field name="url_path"/>
+                                    <field name="model_id"/>
+                                    <field name="field_ids" widget="many2many_tags"/>
+                                    <field name="active"/>
+                                </group>
                             </form>
                         </field>
                     </page>
