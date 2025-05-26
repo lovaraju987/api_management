@@ -39,6 +39,7 @@
                         <field name="name"/>
                         <field name="key" readonly="1"/>
                         <field name="user_id"/>
+                        <field name="is_admin"/>
                         <field name="active"/>
                         <field name="expiry_date"/>
                         <field name="company_ids" widget="many2many_tags"/>
@@ -47,8 +48,8 @@
                 </sheet>
                 <notebook>
                     <page string="API Endpoints">
-                        <field name="endpoint_ids">
-                            <list editable="bottom" delete="true">
+                        <field name="endpoint_ids" context="{'form_view_ref': 'api_management.res_api_endpoint_form_view'}">
+                            <list delete="true">
                                 <field name="name"/>
                                 <field name="url_path"/>
                                 <field name="model_id"/>
