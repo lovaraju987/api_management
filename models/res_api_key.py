@@ -1,4 +1,5 @@
-from odoo import models, fields
+from odoo import models, fields, _
+from odoo.exceptions import UserError
 import secrets
 
 class ResApiKey(models.Model):
@@ -11,7 +12,6 @@ class ResApiKey(models.Model):
     active = fields.Boolean(default=True)
     expiry_date = fields.Date()
     is_admin = fields.Boolean(string="Admin Access", default=False)
-
     allowed_model_ids = fields.Many2many(
         'ir.model',
         'res_api_key_ir_model_rel',
@@ -19,16 +19,14 @@ class ResApiKey(models.Model):
         'model_id',
         string='Allowed Models'
     )
-
+    # Your endpoint_ids field remains defined as before.
     endpoint_ids = fields.One2many(
         comodel_name='res.api.endpoint',
-        inverse_name='id',  # Placeholder, see note below
+        inverse_name='id',  # Placeholder (if you are using a computed field, adjust accordingly)
         string='API Endpoints',
         compute='_compute_endpoint_ids',
         store=False,
     )
-
-    # New field: select allowed companies for this API key.
     company_ids = fields.Many2many('res.company', string="Allowed Companies")
 
     def generate_key(self):
@@ -37,8 +35,16 @@ class ResApiKey(models.Model):
 
     def create(self, vals):
         vals['key'] = secrets.token_hex(20)
-        return super().create(vals)
+        return super(ResApiKey, self).create(vals)
 
     def _compute_endpoint_ids(self):
+        # Compute logic to populate endpoint_ids
         for rec in self:
-            rec.endpoint_ids = self.env['res.api.endpoint'].search([('api_key_ids', 'in', rec.id)])
+            endpoints = self.env['res.api.endpoint'].search([('api_key_ids', 'in', rec.id)])
+            rec.endpoint_ids = endpoints
+
+    def unlink(self):
+        for rec in self:
+            if rec.endpoint_ids:
+                raise UserError(_("You cannot delete an API Key that has associated endpoint URLs."))
+        return super(ResApiKey, self).unlink()
