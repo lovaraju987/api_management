@@ -98,21 +98,26 @@ class DynamicAPI(http.Controller):
                 if field:
                     try:
                         rec_data[fld] = serialize_field(rec, fld, field)
-                    except ValueError as e:
-                        # Skip this field if the error indicates a singleton issue
-                        if "Expected singleton: res.users()" in str(e):
-                            continue
-                        else:
-                            rec_data[fld] = None
+                    except Exception as e:
+                        # Skip the problematic field
+                        continue
             data.append(rec_data)
 
         # 4) Log usage
+        try:
+            # If the current transaction is aborted, rollback before logging usage.
+            if request.env.cr.status == "in_failed_transaction":
+                request.env.cr.rollback()
+        except Exception:
+            # Fallback if status attribute is not available.
+            request.env.cr.rollback()
+
         request.env['api.access.log'].sudo().create({
             'api_key_id':  api_key.id,
             'endpoint':    endpoint.url_path,
             'status':      'success',
             'ip_address':  ip_address,
-            'query_string':query_string,
+            'query_string': query_string,
         })
 
         # 5) Return JSON
